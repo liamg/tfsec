@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/zclconf/go-cty/cty"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2"
@@ -133,8 +134,15 @@ func (block *Block) parseDynamicBlockResult(dynamic *hclsyntax.Block) Blocks {
 	}
 
 	values := forEach.Value().AsValueSlice()
-	for range values {
+	for _, value := range values {
 		clone := *contentBlock
+		mapVal := map[string]cty.Value {
+			"value": value,
+		}
+		clone.ctx = &hcl.EvalContext{
+			Variables: map[string]cty.Value{},
+		}
+		clone.ctx.Variables[dynamic.Labels[0]] = cty.MapVal(mapVal)
 		results = append(results, &clone)
 	}
 

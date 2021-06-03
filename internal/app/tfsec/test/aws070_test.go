@@ -49,6 +49,22 @@ resource "aws_elasticsearch_domain" "example" {
     cloudwatch_log_group_arn = aws_cloudwatch_log_group.example.arn
     log_type                 = "AUDIT_LOGS"
   }
+`,
+			mustExcludeResultCode: checks.AWSESDomainLoggingEnabled,
+		},
+		{
+			name: "check passes if one of the log_type is AUDIT_LOGS and audit log is enabled - using dynamic block",
+			source: `
+resource "aws_elasticsearch_domain" "example" {
+  // other config
+	dynamic "log_publishing_options" {
+	  for_each = ["INDEX_SLOW_LOGS", "SEARCH_SLOW_LOGS", "AUDIT_LOGS", "ES_APPLICATION_LOGS"]
+	  content {
+		enabled = true
+		cloudwatch_log_group_arn = aws_cloudwatch_log_group.es.arn
+		log_type = log_publishing_options.value
+	  }
+	}
 }
 `,
 			mustExcludeResultCode: checks.AWSESDomainLoggingEnabled,
