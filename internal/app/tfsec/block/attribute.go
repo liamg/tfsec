@@ -90,6 +90,10 @@ func (attr *Attribute) Contains(checkValue interface{}, equalityOptions ...Equal
 				valueMap := value.AsValueMap()
 				stringToTest = valueMap["key"]
 			}
+			if value.Type().HasDynamicTypes() {
+				// References without a value can't logically "contain" a some string to check against.
+				return false
+			}
 			if ignoreCase && containsIgnoreCase(stringToTest.AsString(), stringToLookFor) {
 				return true
 			}
