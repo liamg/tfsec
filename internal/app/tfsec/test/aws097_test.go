@@ -30,9 +30,9 @@ data "aws_iam_policy_document" "kms_policy" {
 `,
 			mustIncludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
 		},
-        {
-            name: "partial key and alias arn with asterisk in them",
-            source: `
+		{
+			name: "partial key and alias arn with asterisk in them",
+			source: `
 data "aws_iam_policy_document" "kms_policy" {
   statement {
     principals {
@@ -47,11 +47,11 @@ data "aws_iam_policy_document" "kms_policy" {
   }
 }
 `,
-            mustIncludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
-        },
-        {
-            name: "partial key and alias arn with asterisk in them",
-            source: `
+			mustIncludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
+		},
+		{
+			name: "partial key and alias arn with asterisk in them",
+			source: `
 data "aws_iam_policy_document" "kms_policy" {
   statement {
     principals {
@@ -63,11 +63,11 @@ data "aws_iam_policy_document" "kms_policy" {
   }
 }
 `,
-            mustExcludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
-        },
-        {
-            name: "denies access to any KMS resource",
-            source: `
+			mustExcludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
+		},
+		{
+			name: "denies access to any KMS resource",
+			source: `
 data "aws_iam_policy_document" "kms_policy" {
   statement {
     principals {
@@ -80,8 +80,47 @@ data "aws_iam_policy_document" "kms_policy" {
   }
 }
 `,
-            mustExcludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
-        },
+			mustExcludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
+		},
+		{
+			name: "Understands variables and introspects accordingly",
+			source: `
+variable "arn" {
+  type = string
+  default = "*"
+}
+
+data "aws_iam_policy_document" "access_db_secrets" {
+  statement {
+    actions = [
+      "kms:Decrypt"
+    ]
+
+    resources = [
+      var.arn,
+    ]
+  }
+}
+`,
+			mustIncludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
+		},
+		{
+			name: "Variable is unknown so we don't make determination of the pattern matches",
+			source: `
+data "aws_iam_policy_document" "access_db_secrets" {
+  statement {
+    actions = [
+      "kms:Decrypt"
+    ]
+
+    resources = [
+      var.arn,
+    ]
+  }
+}
+`,
+			mustExcludeResultCode: rules.AWSKMSManagedPoliciesShouldNotAllowDecryptionActionsOnAllKMSKeys,
+		},
 	}
 
 	for _, test := range tests {
